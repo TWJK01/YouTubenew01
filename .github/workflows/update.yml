@@ -1,0 +1,35 @@
+name: Update TV Playlist
+
+on:
+  schedule:
+    - cron: '0 22 * * *' # 每天 UTC 22:00 (台灣時間早上 6:00) 自動執行
+  workflow_dispatch:      # 允許手動點擊按鈕執行
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.10'
+
+    - name: Install dependencies
+      run: |
+        pip install -r requirements.txt
+        playwright install chromium
+
+    - name: Run Scraper
+      run: python main.py
+
+    - name: Commit and Push
+      run: |
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+        git add Full_TV_Wall.m3u8
+        git commit -m "Update Playlist $(date)" || exit 0
+        git push
