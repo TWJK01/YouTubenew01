@@ -1,0 +1,33 @@
+name: Update EPG
+
+on:
+  schedule:
+    # 每天 UTC 時間 20:00 (台北時間凌晨 4 點) 自動執行
+    - cron: '0 20 * * *'
+  workflow_dispatch: # 允許手動觸發執行
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 檢出代碼
+        uses: actions/checkout@v3
+
+      - name: 設定 Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+
+      - name: 安裝依賴庫
+        run: pip install requests lxml
+
+      - name: 執行抓取腳本
+        run: python grabber.py
+
+      - name: 提交並推送更新後的 EPG
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add epg.xml
+          git commit -m "Update EPG: $(date)" || exit 0
+          git push
